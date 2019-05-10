@@ -296,15 +296,22 @@ func startRunCrawlerPage(maxRoutine int) {
 }
 
 func main() {
-	//http.HandleFunc("/crawler", func(w http.ResponseWriter, r *http.Request) {
-	startRunCrawlerPage(10)
-	//_, _ = fmt.Fprintf(w, "trigger")
-	//})
+	isRunning := false
+	http.HandleFunc("/crawler", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprintf(w, "hello word")
+		if !isRunning {
+			timeStart := time.Now()
+			isRunning = true
+			startRunCrawlerPage(10)
+			logger.BkLog.Errorf("done %v", time.Since(timeStart))
+			isRunning = false
+		}
+	})
 
-	//http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	//	_, _ = fmt.Fprintf(w, "hello word")
-	//})
-	//
-	//_ = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprintf(w, "hello word")
+	})
+
+	_ = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 
 }
