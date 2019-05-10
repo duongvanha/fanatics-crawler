@@ -52,6 +52,7 @@ type Product struct {
 	Model
 	Id          int `gorm:"PRIMARY_KEY"`
 	Breadcrumbs string
+	isFree      bool
 	Sizes       []Size `gorm:"many2many:product_size;"`
 	Detail      string
 	Description string
@@ -136,12 +137,13 @@ func CrawlerPageProduct(url string, isFree bool) {
 	product := &Product{
 		Breadcrumbs: string(breadcrumbsJson),
 		Sizes:       sizes,
+		isFree:      isFree,
 		Description: description,
 		Detail:      detail,
 	}
 
-	if len(res) > 0 {
-		i64, _ := strconv.ParseInt(res[0], 10, 32)
+	if len(res) > 1 {
+		i64, _ := strconv.ParseInt(res[1], 10, 32)
 		product.Id = int(i64)
 	}
 	l.Lock()
@@ -154,7 +156,7 @@ func CrawlerPageProduct(url string, isFree bool) {
 
 }
 
-func CrawlerPageCollection(maxRoutine int, url string) {
+func CrawlerPageGetJenLink(maxRoutine int, url string) {
 	document, err := getFailRetry(url, 3, nil)
 
 	if err != nil {
@@ -169,7 +171,12 @@ func CrawlerPageCollection(maxRoutine int, url string) {
 		return
 	}
 
-	document, err = getFailRetry(getUrlPage(href), 3, nil)
+	CrawlerPageCollection(maxRoutine, href, 1)
+}
+
+func CrawlerPageCollection(maxRoutine int, url string, page int) {
+
+	document, err := getFailRetry(getUrlPage(url)+"?pageSize=72&pageNumber="+strconv.Itoa(page), 3, nil)
 
 	if err != nil {
 		logger.BkLog.Errorf("Can not get page url: %v, err %v", err)
@@ -210,10 +217,10 @@ func CrawlerPageCollection(maxRoutine int, url string) {
 			for {
 				data, ok := <-ch
 				if !ok {
-					wg.Done()
 					return
 				}
 				CrawlerPageProduct(data.url, data.existJersey)
+				wg.Done()
 			}
 		}()
 	}
@@ -225,6 +232,9 @@ func CrawlerPageCollection(maxRoutine int, url string) {
 	close(ch)
 	wg.Wait()
 
+	if !document.Find(".pagination-container .next-page").HasClass("disabled") {
+		CrawlerPageCollection(maxRoutine, url, page+1)
+	}
 }
 
 func startRunCrawlerPage(maxRoutine int) {
@@ -268,10 +278,10 @@ func startRunCrawlerPage(maxRoutine int) {
 			for {
 				url, ok := <-ch
 				if !ok {
-					wg.Done()
 					return
 				}
-				CrawlerPageCollection(10, url)
+				CrawlerPageGetJenLink(10, url)
+				wg.Done()
 			}
 		}()
 	}
@@ -286,15 +296,15 @@ func startRunCrawlerPage(maxRoutine int) {
 }
 
 func main() {
-	http.HandleFunc("/crawler", func(w http.ResponseWriter, r *http.Request) {
-		startRunCrawlerPage(10)
-		_, _ = fmt.Fprintf(w, "trigger")
-	})
+	//http.HandleFunc("/crawler", func(w http.ResponseWriter, r *http.Request) {
+	startRunCrawlerPage(10)
+	//_, _ = fmt.Fprintf(w, "trigger")
+	//})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprintf(w, "hello word")
-	})
-
-	_ = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	//http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	//	_, _ = fmt.Fprintf(w, "hello word")
+	//})
+	//
+	//_ = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 
 }
