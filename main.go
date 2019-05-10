@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bkgo/beekit/logger"
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/duongvanha/fanaticsCrawler/logger"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
