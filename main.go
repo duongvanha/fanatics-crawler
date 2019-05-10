@@ -213,7 +213,7 @@ func CrawlerPageCollection(maxRoutine int, url string) {
 					wg.Done()
 					return
 				}
-				go CrawlerPageProduct(data.url, data.existJersey)
+				CrawlerPageProduct(data.url, data.existJersey)
 			}
 		}()
 	}
@@ -271,7 +271,7 @@ func startRunCrawlerPage(maxRoutine int) {
 					wg.Done()
 					return
 				}
-				go CrawlerPageCollection(10, url)
+				CrawlerPageCollection(10, url)
 			}
 		}()
 	}
