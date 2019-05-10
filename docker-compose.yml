@@ -1,0 +1,11 @@
+version: '3'
+services:
+
+  postgres:
+    env_file:
+    - ./.env
+    image: postgres:alpine
+    volumes:
+    - ./configuration/postgres:/usr/src/data
+    ports:
+    - 5432:5432
