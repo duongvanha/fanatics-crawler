@@ -271,7 +271,7 @@ func startRunCrawlerPage(maxRoutine int) {
 					wg.Done()
 					return
 				}
-				go CrawlerPageCollection(1, url)
+				go CrawlerPageCollection(10, url)
 			}
 		}()
 	}
@@ -286,7 +286,14 @@ func startRunCrawlerPage(maxRoutine int) {
 }
 
 func main() {
+	http.HandleFunc("/crawler", func(w http.ResponseWriter, r *http.Request) {
+		startRunCrawlerPage(10)
+	})
 
-	startRunCrawlerPage(10)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprintf(w, "hello word")
+	})
+
+	_ = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 
 }
