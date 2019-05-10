@@ -288,6 +288,7 @@ func startRunCrawlerPage(maxRoutine int) {
 func main() {
 	http.HandleFunc("/crawler", func(w http.ResponseWriter, r *http.Request) {
 		startRunCrawlerPage(10)
+		_, _ = fmt.Fprintf(w, "trigger")
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
